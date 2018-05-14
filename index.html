@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>Serverless applications with AWS SAM</title>
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/blood-night.css">
+
+		<!-- Theme used for syntax highlighting of code -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+		
+		<link rel="stylesheet" type="text/css" href="css/asciinema-player.css" />
+		<script src="js/asciinema-player.js"></script>
+		
+		<style type="text/css">
+			.reveal h1 {
+				font-size: 2.2em;
+			}
+			
+			.reveal h2 {
+				font-size: 1.8em;
+				margin-bottom: 1em;
+			}
+		
+			.reveal h3 {
+				font-size: 1.5em;
+			}
+		
+			.reveal p { 
+				font-size: 0.8em;
+			}
+			
+			.reveal pre code.much-code {
+				font-size: 0.8em;
+				max-height: 600px;
+				line-height: 23px;
+			}
+
+			.reveal pre code.much-more-code {
+				font-size: 0.76em;
+				max-height: 600px;
+				line-height: 21px;
+			}
+			
+			.reveal li {
+				margin:2rem 0;
+			}
+			
+			.reveal section img {
+				border:0;
+				padding:0 0em;
+				margin:0 0 0.5rem 0;
+				background:inherit;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="reveal">
+			<div class="slides">
+				<section>
+					<h1>Serverless applications with AWS SAM</h1>
+					<aside class="notes">
+						Before we start:
+						<ul>
+							<li>Quick poll: Experience with:
+								<ul>
+									<li>CloudFormation</li>
+									<li>Serverless Framework</li>
+									<li>SAM</li>
+								</ul>
+							</li>
+							<li>If you have questions, just ask!</li>
+							<li>I'll go through some slides and through a walkthrough afterwards as well.</li>
+						</ul>
+				</section>
+				<section>
+					<ul>
+						<li>Hi, I'm <a href="https://github.com/Dunedan/">Daniel</a>!</li>
+						<li>Working with AWS for 5+ years</li>
+						<li>Doing AWS and Python stuff at <a href="https://www.lifetime.eu/">LifeTime <img src="images/lifetime.png" width="40" height="40" style="vertical-align:middle;border-radius:50%;"></a></li>
+						<li>We're running a serverless application utilizing AWS SAM since one year in production</li>
+						<li>Last month ~18 million AWS Lambda invocations</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>LifeTime enables patients to digitally exchange documents with doctors using their smartphones</li>
+							<li>Additionally the application uses API Gateway, CloudFormation, AWS Lambda, KMS, S3, SNS, SSM Parameter Store, Route53, X-Ray, ...</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<h2>What's SAM?</h2>
+					<div style="display:flex;">
+					<ul>
+						<li><a href="https://github.com/awslabs/serverless-application-model">Serverless Application Model</a></li>
+						<li>Amazon's take on easy deployments of serverless applications</li>
+					</ul>
+					<img src="images/sam.png" style="background:#555555;border-radius:5%;">
+					</div>
+				</section>
+				<section>
+					<h2>What's in the box?</h2>
+					<ol>
+						<li>Additional resource types for CloudFormation</li>
+						<li>Tooling for easy packaging and deployment</li>
+						<li>Ability to run/test applications locally</li>
+					</ol>
+					<aside class="notes">
+						<ul>
+							<li>If you don't need the ability to run locally, the AWS CLI is sufficient.</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<h2>SAM resource types</h2>
+					<ul>
+						<li class="monospace">AWS::Serverless::Function</li>
+						<li class="monospace">AWS::Serverless::Api</li>
+						<li class="monospace">AWS::Serverless::SimpleTable</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>These types are converted into real CloudFormation resource types transparently</li>
+							<li><span class="monospace">AWS::Serverless::Function</span> – Lambda Function + IAM role + event sources + API</li>
+							<li><span class="monospace">AWS::Serverless::Api</span> - API Gateway API, based on Swagger template</li>
+							<li><span class="monospace">AWS::Serverless::SimpleTable</span> - DynamoDB table with single primary key</li>
+							<li>Don't offer all abilities than their underlying types, but most of the time enough</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<h2>Packing &amp; Deployment</h2>
+					<ul>
+						<li><span class="monospace">sam package</span> – collect and upload artifacts</li>
+						<li><span class="monospace">sam deploy</span> – create/update CloudFormation stacks</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>The commands are just aliases for the AWS CLI: <span class="monospace">aws cloudformation package ...</span></li>
+							<li>During <span class="monospace">package</span> CloudFormation replaces local <span class="monospace">CodeUri</span>'s with their S3 URIs</li>
+							<li>During <span class="monospace">deploy</span> CloudFormation expands the SAM resources to regular CloudFormation resources</li>
+							<li>Fun fact: CloudFormation internally seems to use Python 2</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<h2>Local testing</h2>
+					<ul>
+						<li><a href="https://github.com/awslabs/aws-sam-cli">AWS SAM CLI</a></li>
+						<li>Uses docker under the hood to provide local API Gateway and Lambda</li>
+						<li>Still pretty new</li>
+					</ul>
+					<aside class="notes">
+						<ul>
+							<li>Currently no integration with other local AWS services, like DynamoDB local</li>
+							<li>AWS just released a complete reimplementation last week, switching from Go to Python</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<section>
+						<h2>Demo time!</h2>
+					</section>
+					<section>
+						<asciinema-player src="recordings/1.cast" cols="80" rows="24" font-size="medium"></asciinema-player>
+					</section>
+					<section>
+						<asciinema-player src="recordings/2.cast" cols="80" rows="24" font-size="medium"></asciinema-player>
+					</section>
+					<section>
+						<asciinema-player src="recordings/3.cast" cols="80" rows="24" font-size="medium"></asciinema-player>
+					</section>
+					<section>
+						<asciinema-player src="recordings/4.cast" cols="80" rows="24" font-size="medium"></asciinema-player>
+					</section>
+					<section>
+						<asciinema-player src="recordings/5.cast" cols="80" rows="24" font-size="medium"></asciinema-player>
+					</section>
+				</section>
+				<section>
+					<div style="display:grid;grid-template-columns:50% 50%;grid-template-rows:auto auto;grid-column-gap:1.5em;">
+						<h3 style="grid-row:1 / 1;grid-colum:1 / 1">SAM</h3>
+						<ul style="grid-row:2 / 2;grid-colum:1 / 1">
+							<li>backed by AWS and covered by AWS support plans</li>
+							<li>allows JSON in addition to YAML for resource definition</li>
+						</ul>
+						<h3 style="grid-row:1 / 1;grid-colum:2 / 2">Serverless Framework</h3>
+						<ul style="grid-row:2 / 2;grid-colum:2 / 2">
+							<li>works with different Cloud providers</li>
+							<li>might have more traction currently</li>
+						</ul>
+					</div>
+					<aside class="notes">
+						<ul>
+							<li>Aside from the multi Cloud provider pretty similar</li>
+							<li>Both use CloudFormation for deployment</li>
+							<li>SAM in Python, Serverless in Javascript</li>
+						</ul>
+					</aside>
+				</section>
+				<section>
+					<h2>Thanks!</h2>
+					<br/>
+					<p>Slides and code samples are available at <br /><a href="https://github.com/Dunedan/serverless-applications-with-aws-sam">https://github.com/Dunedan/serverless-applications-with-aws-sam</a>
+					</p>
+				</section>
+			</div>
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+			Reveal.initialize({
+				width: 1100,
+				height: 700,
+				margin: 0.1,
+				progress: false,
+				history: true,
+				controls: false,
+				controlsTutorial: false,
+				dependencies: [
+					{ src: 'plugin/notes/notes.js', async: true },
+					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/line-numbers/line-numbers.js', async: false}
+				]
+			});
+		</script>
+	</body>
+</html>

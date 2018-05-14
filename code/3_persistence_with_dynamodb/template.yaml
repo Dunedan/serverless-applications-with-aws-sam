@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: A simple page view counter application.
+Resources:
+  HelloWorld:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./
+      Handler: hello.handler
+      Runtime: python3.6
+      Events:
+        GetHelloWorld:
+          Type: Api
+          Properties:
+            Path: /
+            Method: get
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref DynamoDBTable
+  DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
